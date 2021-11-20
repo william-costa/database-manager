@@ -5,7 +5,8 @@ namespace WilliamCosta\DatabaseManager;
 use \PDO;
 use \PDOException;
 
-class Database{
+class Database
+{
 
   /**
    * Host de conexão com o banco de dados
@@ -57,7 +58,8 @@ class Database{
    * @param  string  $pass
    * @param  integer $port
    */
-  public static function config($host,$name,$user,$pass,$port = 3306){
+  public static function config($host, $name, $user, $pass, $port = 3306)
+  {
     self::$host = $host;
     self::$name = $name;
     self::$user = $user;
@@ -69,7 +71,8 @@ class Database{
    * Define a tabela e instancia e conexão
    * @param string $table
    */
-  public function __construct($table = null){
+  public function __construct($table = null)
+  {
     $this->table = $table;
     $this->setConnection();
   }
@@ -77,12 +80,13 @@ class Database{
   /**
    * Método responsável por criar uma conexão com o banco de dados
    */
-  private function setConnection(){
-    try{
-      $this->connection = new PDO('mysql:host='.self::$host.';dbname='.self::$name.';port='.self::$port,self::$user,self::$pass);
-      $this->connection->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-    }catch(PDOException $e){
-      die('ERROR: '.$e->getMessage());
+  private function setConnection()
+  {
+    try {
+      $this->connection = new PDO('mysql:host=' . self::$host . ';dbname=' . self::$name . ';port=' . self::$port, self::$user, self::$pass);
+      $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+      die('ERROR: ' . $e->getMessage());
     }
   }
 
@@ -92,13 +96,14 @@ class Database{
    * @param  array  $params
    * @return PDOStatement
    */
-  public function execute($query,$params = []){
-    try{
+  public function execute($query, $params = [])
+  {
+    try {
       $statement = $this->connection->prepare($query);
       $statement->execute($params);
       return $statement;
-    }catch(PDOException $e){
-      die('ERROR: '.$e->getMessage());
+    } catch (PDOException $e) {
+      die('ERROR: ' . $e->getMessage());
     }
   }
 
@@ -107,16 +112,17 @@ class Database{
    * @param  array $values [ field => value ]
    * @return integer ID inserido
    */
-  public function insert($values){
+  public function insert($values)
+  {
     //DADOS DA QUERY
     $fields = array_keys($values);
-    $binds  = array_pad([],count($fields),'?');
+    $binds  = array_pad([], count($fields), '?');
 
     //MONTA A QUERY
-    $query = 'INSERT INTO '.$this->table.' ('.implode(',',$fields).') VALUES ('.implode(',',$binds).')';
+    $query = 'INSERT INTO ' . $this->table . ' (' . implode(',', $fields) . ') VALUES (' . implode(',', $binds) . ')';
 
     //EXECUTA O INSERT
-    $this->execute($query,array_values($values));
+    $this->execute($query, array_values($values));
 
     //RETORNA O ID INSERIDO
     return $this->connection->lastInsertId();
@@ -130,14 +136,15 @@ class Database{
    * @param  string $fields
    * @return PDOStatement
    */
-  public function select($where = null, $order = null, $limit = null, $fields = '*'){
+  public function select($where = null, $order = null, $limit = null, $fields = '*')
+  {
     //DADOS DA QUERY
-    $where = strlen($where) ? 'WHERE '.$where : '';
-    $order = strlen($order) ? 'ORDER BY '.$order : '';
-    $limit = strlen($limit) ? 'LIMIT '.$limit : '';
+    $where = strlen($where) ? 'WHERE ' . $where : '';
+    $order = strlen($order) ? 'ORDER BY ' . $order : '';
+    $limit = strlen($limit) ? 'LIMIT ' . $limit : '';
 
     //MONTA A QUERY
-    $query = 'SELECT '.$fields.' FROM '.$this->table.' '.$where.' '.$order.' '.$limit;
+    $query = 'SELECT ' . $fields . ' FROM ' . $this->table . ' ' . $where . ' ' . $order . ' ' . $limit;
 
     //EXECUTA A QUERY
     return $this->execute($query);
@@ -149,15 +156,16 @@ class Database{
    * @param  array $values [ field => value ]
    * @return boolean
    */
-  public function update($where,$values){
+  public function update($where, $values)
+  {
     //DADOS DA QUERY
     $fields = array_keys($values);
 
     //MONTA A QUERY
-    $query = 'UPDATE '.$this->table.' SET '.implode('=?,',$fields).'=? WHERE '.$where;
+    $query = 'UPDATE ' . $this->table . ' SET ' . implode('=?,', $fields) . '=? WHERE ' . $where;
 
     //EXECUTAR A QUERY
-    $this->execute($query,array_values($values));
+    $this->execute($query, array_values($values));
 
     //RETORNA SUCESSO
     return true;
@@ -165,18 +173,24 @@ class Database{
 
   /**
    * Método responsável por excluir dados do banco
+   * 
    * @param  string $where
    * @return boolean
    */
-  public function delete($where){
-    //MONTA A QUERY
-    $query = 'DELETE FROM '.$this->table.' WHERE '.$where;
+  public function delete($where)
+  {
+    if (!empty($where)) {
 
-    //EXECUTA A QUERY
-    $this->execute($query);
+      //MONTA A QUERY
+      $query = 'DELETE FROM ' . $this->table . ' WHERE ' . $where;
 
-    //RETORNA SUCESSO
-    return true;
+      //EXECUTA A QUERY
+      $this->execute($query);
+
+      //RETORNA SUCESSO
+      return true;
+    }
+
+    return false;
   }
-
 }
